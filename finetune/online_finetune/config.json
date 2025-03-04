@@ -1,8 +1,8 @@
 {
   "llm_model_name_or_path": "HKUSTAudio/Llasa-1B-Multilingual",
-  "data_path": "//aifs4su/data/zheny/opensource/LJSpeech-1.1/ljspeech_bin",
+  "data_path": "C:\\Users\\sarve\\data\\ljspeech_bin",
   "bf16": true,
-  "output_dir": "/aifs4su/data/zheny/opensource/LLaSA_training/finetune/genshin_v2",
+  "output_dir": "C:\\Users\\sarve\\data\\LLaSA_training\\finetune\\genshin_v2",
   "num_train_epochs": 1,
   "per_device_train_batch_size": 4,
   "per_device_eval_batch_size": 4,
@@ -22,6 +22,6 @@
   "model_max_length": 2048,
   "gradient_checkpointing": false,
   "dataloader_num_workers": 4,
-  "dataloader_prefetch_factor": 4 ,
-  "deepspeed":"ds_config_zero2.json"
+  "dataloader_prefetch_factor": 4,
+  "deepspeed": "ds_config_zero2.json"
 }

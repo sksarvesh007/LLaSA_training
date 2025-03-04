@@ -164,7 +164,10 @@ class CustomTrainingArguments(TrainingArguments):
     run_name: Optional[str] = field(default=None, metadata={"help": "The name of the run for logging."})
     gradient_checkpointing: bool = field(default=True)
     lr_scheduler_type: str = field(default="cosine", metadata={"help": "Learning rate scheduler type"})
+from datasets import load_dataset
 
+ds1 = load_dataset("Mikhil-jivus/testHindiVoice")
+ds2 = load_dataset("Mikhil-jivus/originalHindiVoice")
 def main():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, CustomTrainingArguments))
     if len(sys.argv) > 1 and sys.argv[1].endswith(".json"):
@@ -209,24 +212,45 @@ def main():
     #     split="en", 
     #     cache_dir="/aifs4su/data/zheny/opensource/local_data160/data"
     # )
-
     # dataset = load_dataset('simon3000/genshin-voice', cache_dir='/aifs4su/data/zheny/opensource/local_data160/genshin')
     # data_split = dataset['train']
+    
+    import gc 
+    from tqdm import tqdm
+    from datasets import Dataset, DatasetDict
 
-    saved_dataset_path = '/aifs4su/data/zheny/opensource/local_data160/genshin_filter'
+    # Select first 100 rows from each dataset
+    train_ds1 = ds1["train"].select(range(100))
+    train_ds2 = ds2["train"].select(range(100))
+
+    # Create new dataset with updated columns
+    new_data = []
+    for i in tqdm(range(len(train_ds1)), desc="Processing Rows"):
+        row = {**train_ds1[i]}  # Copy row from ds1
+        row["chunked_audio_filepath"] = train_ds2[i]["chunked_audio_filepath"]  # Get only the file path
+        new_data.append(row)
+
+    # Convert to Hugging Face Dataset
+    ds3_train = Dataset.from_list(new_data)
+    ds3 = DatasetDict({"train": ds3_train})
+
+    print(ds3)
+    dataset = ds3 
+    
+    #saved_dataset_path = '/aifs4su/data/zheny/opensource/local_data160/genshin_filter'
 
     # Load the filtered dataset from disk
-    dataset = load_from_disk(saved_dataset_path)
+    #dataset = load_from_disk(saved_dataset_path)
 
     # Access the train split from the loaded dataset
-    data_split = dataset#['train']
+    data_split = dataset['train']
 
 
     # train_test_split = dataset['en'].train_test_split(test_size=0.005)
-    train_test_split = data_split.train_test_split(test_size=0.005)
+    train_test_split = dataset['train'].train_test_split(test_size=0.005)
     train_dataset_raw = train_test_split["train"]
     test_dataset_raw = train_test_split["test"]
-    
+      
     # Instantiate custom dataset (pass in tokenizer for prompt construction and tokenization)
     train_dataset = WaveDataset(train_dataset_raw, sampling_rate=16000, tokenizer=tokenizer)
     test_dataset = WaveDataset(test_dataset_raw, sampling_rate=16000, tokenizer=tokenizer)
